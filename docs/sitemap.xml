@@ -1,0 +1,22 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/extracting-dynamic-components.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/arima_dicca.html</loc></url>
+<url><loc>/reference/dicca.html</loc></url>
+<url><loc>/reference/dicca_predict_scores.html</loc></url>
+<url><loc>/reference/dicca_scores.html</loc></url>
+<url><loc>/reference/dipca.html</loc></url>
+<url><loc>/reference/dipls.html</loc></url>
+<url><loc>/reference/dipls_scores.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/predict.dicca.html</loc></url>
+<url><loc>/reference/predict.dipca.html</loc></url>
+<url><loc>/reference/predict.dipls.html</loc></url>
+<url><loc>/reference/residuals.dicca.html</loc></url>
+<url><loc>/reference/residuals.dipca.html</loc></url>
+<url><loc>/reference/residuals.dipls.html</loc></url>
+</urlset>
+
