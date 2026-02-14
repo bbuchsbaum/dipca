@@ -2,7 +2,6 @@
 # Tests that ARIMA inner models improve on AR for nonstationary data
 # Based on Dong & Qin (2018) compactness and generalization results
 
-context("DiCCA ARIMA diagnostics")
 
 test_that("ARIMA-DiCCA vs AR-DiCCA on I(1)+ARMA latent process", {
   skip("ARIMA inner model is experimental; tests disabled until stabilized.")

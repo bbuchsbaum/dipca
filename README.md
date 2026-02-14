@@ -6,6 +6,9 @@ A high-performance R implementation of **Dynamic Inner PCA (DiPCA)** with an Rcp
 ## Install
 
 ```r
+# install non-CRAN dependency
+remotes::install_github("bbuchsbaum/multivarious")
+
 # from a local folder
 install.packages("Rcpp")
 remotes::install_local("dipca")
@@ -18,8 +21,8 @@ devtools::install("dipca")
 ```r
 library(dipca)
 fit <- dipca(X, s=1, l=3, n_init=5, max_iter=1000, tol=1e-7, algorithm="I")
-pred <- dipca_predict(fit, X)
-pe <- dipca_prediction_errors(fit, X)
+pred <- predict(fit, X)
+res <- residuals(fit, X)
 ```
 
 ## Notes

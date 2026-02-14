@@ -344,8 +344,8 @@ predict.dicca <- function(object, newdata = NULL, ...) {
 #' @param ... Additional arguments (currently unused)
 #' @return A list with components:
 #'   \itemize{
-#'     \item \code{v} - Score-space residuals (T_t - T̂_t)
-#'     \item \code{e_hat} - Data-space reconstruction residuals (X_t - X̂_t)
+#'     \item \code{v} - Score-space residuals (\eqn{T_t - \hat{T}_t})
+#'     \item \code{e_hat} - Data-space reconstruction residuals (\eqn{X_t - \hat{X}_t})
 #'     \item \code{scores} - Observed latent scores
 #'   }
 #' @details Computes both latent score prediction errors from the VAR/ARIMA model

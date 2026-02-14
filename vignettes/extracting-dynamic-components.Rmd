@@ -329,8 +329,7 @@ A key application of DiPCA/DiCCA is **dynamic whitening** - removing temporal st
 
 ```{r whitening, fig.height=5}
 # Compute residuals (prediction errors)
-# Compute residuals (prediction errors) using class-specific method
-resid_dipca <- dipca:::residuals.dipca(fit_dipca, X)
+resid_dipca <- stats::residuals(fit_dipca, X)
 
 # Compute autocorrelation for original and residual data
 acf_original <- mean(sapply(1:4, function(j) {

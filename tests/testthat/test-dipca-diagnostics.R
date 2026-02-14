@@ -2,7 +2,6 @@
 # Tests core theoretical properties: orthogonality, whitening, predictability
 # Based on Dong & Qin (2018) DiPCA objective and whitening-filter view
 
-context("DiPCA diagnostics")
 
 test_that("DiPCA: orthogonality and whitening on small VAR", {
   skip_on_cran()

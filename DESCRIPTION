@@ -2,16 +2,22 @@ Package: dipca
 Type: Package
 Title: Dynamic Inner Principal Component Analysis
 Version: 0.1.0
-Author: Bradley R. Buchsbaum
-Maintainer: Bradley R. Buchsbaum <brad.buchsbaum@gmail.com>
-Description: Implements Dynamic Inner Principal Component Analysis (DiPCA) for
-    multivariate time series analysis. DiPCA extracts latent components that
-    follow a Vector AutoRegressive (VAR) model, enabling temporal prediction
-    and reconstruction. Integrates with the multivarious package framework for
-    consistent preprocessing and projection interfaces.
+Authors@R: person(given = c("Bradley", "R."),
+    family = "Buchsbaum",
+    role = c("aut", "cre"),
+    email = "brad.buchsbaum@gmail.com")
+Description: Implements Dynamic Inner Principal Component Analysis (DiPCA),
+    Dynamic Inner Canonical Correlation Analysis (DiCCA), and Dynamic Inner
+    Partial Least Squares (DiPLS) for multivariate time series analysis.
+    These methods extract latent components that follow autoregressive models,
+    enabling temporal prediction and reconstruction. Based on the methods of
+    Dong and Qin (2018) <doi:10.1016/j.jprocont.2017.05.002> for DiPCA,
+    Dong and Qin (2018) <doi:10.1016/j.ifacol.2018.09.379> for DiCCA, and
+    Dong and Qin (2018) <doi:10.1016/j.jprocont.2018.04.006> for DiPLS.
+    Integrates with the 'multivarious' package framework for consistent
+    preprocessing and projection interfaces.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
 Depends: R (>= 3.5.0)
 Imports:
     Rcpp (>= 1.0.0),
@@ -27,6 +33,5 @@ Suggests:
     ggplot2,
     gridExtra,
     reshape2
+Config/testthat/edition: 3
 VignetteBuilder: knitr
-Remotes:
-    bbuchsbaum/multivarious

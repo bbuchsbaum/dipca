@@ -76,4 +76,3 @@ arma::vec smallest_eigenvector_crossprod_cpp(const arma::mat& U) {
   if (nrm > 0) w /= nrm;
   return w;
 }
-

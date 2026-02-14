@@ -1,4 +1,3 @@
-
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -116,7 +115,6 @@ NumericVector ybeta_matvec(const List& blocks, const int s,
                            const NumericVector& beta, const NumericVector& v) {
   const NumericMatrix Xsp1 = blocks[s];
   const int n = Xsp1.nrow();
-  const int m = Xsp1.ncol();
 
   // u2, vis2
   NumericVector u2(n);
@@ -186,7 +184,6 @@ List dipca_component_cpp(const NumericMatrix& X, const int s,
     } else {
       // Algorithm II: power iteration on matvec
       NumericVector v = clone(w);
-      double lam_pw = 0.0;
       for (int k = 0; k < inner_power; ++k) {
         NumericVector Av = ybeta_matvec(blocks, s, beta, v);
         double nv = std::sqrt(std::inner_product(Av.begin(), Av.end(), Av.begin(), 0.0));

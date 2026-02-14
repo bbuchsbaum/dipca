@@ -1,5 +1,4 @@
 
-context("dipca core")
 
 simulate_latent_VAR <- function(seed=0, T=1200, l=3, m=5, s=1, noise_x=0.1, noise_t=1.0) {
   set.seed(seed)

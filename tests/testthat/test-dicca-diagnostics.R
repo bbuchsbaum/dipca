@@ -2,7 +2,6 @@
 # Tests canonical correlation objective: descending predictability (R²)
 # Based on Dong & Qin (2018) DiCCA algorithm and monotone R² property
 
-context("DiCCA diagnostics (AR inner)")
 
 test_that("DiCCA (AR): descending predictability and whitening", {
   skip_on_cran()

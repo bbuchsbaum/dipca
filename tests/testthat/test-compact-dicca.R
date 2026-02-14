@@ -1,5 +1,4 @@
 
-context("compact dicca (arima)")
 
 test_that("ARIMA-DiCCA improves latent residual whiteness vs AR-DiCCA", {
   skip("ARIMA inner model is experimental; tests disabled until stabilized.")

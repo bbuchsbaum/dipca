@@ -2,3 +2,8 @@
 ^\.Rproj\.user$
 ^data-raw$
 ^\.claude$
+^docs$
+^repomix-output\.txt$
+^check-results$
+^dipca\.Rcheck$
+^\.omc$

@@ -1,4 +1,3 @@
-context("Dynamic-inner PLS (DiPLS)")
 
 test_that("dipls produces coherent projector objects", {
   set.seed(123)
