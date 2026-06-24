@@ -1,4 +1,5 @@
-#include <Rcpp.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 
 // Compute lagged blocks X_i for i=1..s+1; returns a list of NumericMatrix (n x m)
@@ -125,6 +126,24 @@ NumericVector ybeta_matvec(const List& blocks, const int s,
   return d2;
 }
 
+// robust solve(A, b) with optional ridge and pseudoinverse fallback
+inline NumericVector solve_linear(const NumericMatrix& A_in,
+                                  const NumericVector& b,
+                                  const double ridge = 0.0) {
+  arma::mat A = as<arma::mat>(A_in);
+  arma::vec rhs = as<arma::vec>(b);
+  if (ridge > 0.0) {
+    A.diag() += ridge;
+  }
+
+  arma::vec out;
+  bool ok = arma::solve(out, A, rhs, arma::solve_opts::no_approx);
+  if (!ok || !out.is_finite()) {
+    out = arma::pinv(A) * rhs;
+  }
+  return wrap(out);
+}
+
 // One DiPCA component core loop in C++
 // [[Rcpp::export]]
 List dipca_component_cpp(const NumericMatrix& X, const int s,
@@ -153,36 +172,47 @@ List dipca_component_cpp(const NumericMatrix& X, const int s,
   NumericVector c(s);
   NumericVector d(m);
 
-  double lam = 0.0;
+  double obj = 0.0;
+  double Jprev = R_NegInf;
   int it = 0;
   std::vector<double> obj_hist;
 
   for (it = 1; it <= max_iter; ++it) {
-    // u, vis
     compute_u_vis(blocks, s, w, u, vis);
-    // c and beta update
-    c = compute_c(u, vis);
-    double lam_new = 0.0;
-    for (int i = 0; i < s; ++i) lam_new += c[i] * c[i];
-    lam_new = std::sqrt(lam_new);
-    if (lam_new <= 1e-15) {
-      for (int i = 0; i < s; ++i) beta[i] = 1.0 / std::sqrt((double)s);
-    } else {
-      for (int i = 0; i < s; ++i) beta[i] = c[i] / lam_new;
-    }
 
-    // w update
+    NumericMatrix G(s, s);
+    NumericVector rhs(s);
+    for (int j = 0; j < s; ++j) {
+      double rhs_acc = 0.0;
+      for (int r = 0; r < n; ++r) rhs_acc += vis(r, j) * u[r];
+      rhs[j] = rhs_acc;
+      for (int k = j; k < s; ++k) {
+        double g_acc = 0.0;
+        for (int r = 0; r < n; ++r) g_acc += vis(r, j) * vis(r, k);
+        G(j, k) = g_acc;
+        if (k != j) G(k, j) = g_acc;
+      }
+    }
+    beta = solve_linear(G, rhs);
+
+    NumericVector that(n);
+    double denom = 0.0;
+    for (int r = 0; r < n; ++r) {
+      double fit = 0.0;
+      for (int j = 0; j < s; ++j) fit += vis(r, j) * beta[j];
+      that[r] = fit;
+      denom += u[r] * fit;
+    }
+    denom = std::sqrt(std::max(1e-12, denom));
+    for (int i = 0; i < s; ++i) beta[i] /= denom;
+
     if (algorithm == "I") {
       d = compute_d(blocks, s, u, vis, beta);
-      // normalize
       double nd = std::sqrt(std::inner_product(d.begin(), d.end(), d.begin(), 0.0));
       if (nd > 1e-15) {
         for (int j = 0; j < m; ++j) w[j] = d[j] / nd;
-      } else {
-        // keep w unchanged if degenerate
       }
     } else {
-      // Algorithm II: power iteration on matvec
       NumericVector v = clone(w);
       for (int k = 0; k < inner_power; ++k) {
         NumericVector Av = ybeta_matvec(blocks, s, beta, v);
@@ -203,37 +233,78 @@ List dipca_component_cpp(const NumericMatrix& X, const int s,
       d = ybeta_matvec(blocks, s, beta, w);
     }
 
-    // recompute residual and objective with updated w
     compute_u_vis(blocks, s, w, u, vis);
+    obj = 0.0;
+    for (int r = 0; r < n; ++r) {
+      double fit = 0.0;
+      for (int j = 0; j < s; ++j) fit += vis(r, j) * beta[j];
+      obj += u[r] * fit;
+    }
+
+    d = compute_d(blocks, s, u, vis, beta);
     c = compute_c(u, vis);
-    lam = 0.0;
+    double lam = 0.0;
     for (int i = 0; i < s; ++i) lam += c[i] * c[i];
     lam = std::sqrt(lam);
-    d = compute_d(blocks, s, u, vis, beta);
-
-    // residual inf-norm
     double res = 0.0;
     for (int j = 0; j < m; ++j) {
       double tmp = d[j] - lam * w[j];
       double a = std::abs(tmp);
       if (a > res) res = a;
     }
-    obj_hist.push_back(lam);
-    if (verbose && (it % 50 == 0 || res < tol)) {
-      Rcpp::Rcout << "[dipca] it=" << it << " obj=" << lam << " res=" << res << std::endl;
+    obj_hist.push_back(obj);
+    if (verbose && (it % 50 == 0 || std::abs(obj - Jprev) < tol || res < tol)) {
+      Rcpp::Rcout << "[dipca] it=" << it << " obj=" << obj << " res=" << res << std::endl;
     }
-    if (res < tol) break;
+    if (std::abs(obj - Jprev) < tol) {
+      break;
+    }
+    Jprev = obj;
   }
 
   // return
   NumericVector obj_hist_R(obj_hist.size());
   for (size_t i = 0; i < obj_hist.size(); ++i) obj_hist_R[i] = obj_hist[i];
 
+  NumericVector ts1f = matvec(Xsp1, w);
+  NumericVector that(n);
+  for (int lag = 1; lag <= s; ++lag) {
+    const NumericMatrix Xi = blocks[s - lag];
+    NumericVector ti = matvec(Xi, w);
+    const double b = beta[lag - 1];
+    for (int i = 0; i < n; ++i) {
+      that[i] += b * ti[i];
+    }
+  }
+  double mean_a = 0.0, mean_b = 0.0;
+  for (int i = 0; i < n; ++i) {
+    mean_a += ts1f[i];
+    mean_b += that[i];
+  }
+  mean_a /= n;
+  mean_b /= n;
+  double num = 0.0, da = 0.0, db = 0.0;
+  for (int i = 0; i < n; ++i) {
+    const double aa = ts1f[i] - mean_a;
+    const double bb = that[i] - mean_b;
+    num += aa * bb;
+    da += aa * aa;
+    db += bb * bb;
+  }
+  double R2 = 0.0;
+  const double denomR = std::sqrt(da * db);
+  if (denomR > 1e-15) {
+    const double r = num / denomR;
+    R2 = r * r;
+  }
+  const int iters_out = std::min(it, max_iter);
+
   return List::create(
     _["w"] = w,
     _["beta"] = beta,
-    _["obj"] = lam,
-    _["iters"] = it,
+    _["obj"] = obj,
+    _["iters"] = iters_out,
+    _["R2"] = R2,
     _["obj_hist"] = obj_hist_R
   );
 }
@@ -319,24 +390,6 @@ inline NumericMatrix gram_Ts(const NumericMatrix& Ts) {
   return G;
 }
 
-// robust solve(A, b) via base::solve with small ridge fallback
-inline NumericVector solve_linear(const NumericMatrix& A_in, const NumericVector& b) {
-  using namespace Rcpp;
-  Environment base = Environment::namespace_env("base");
-  Function solve = base["solve"];
-  NumericMatrix A = clone(A_in);
-  SEXP res;
-  try {
-    res = solve(A, b);
-  } catch (...) {
-    // add small ridge and retry
-    const int m = A.nrow();
-    for (int i = 0; i < m; ++i) A(i, i) += 1e-10;
-    res = solve(A, b);
-  }
-  return as<NumericVector>(res);
-}
-
 // [[Rcpp::export]]
 List dicca_component_cpp(const NumericMatrix& X, const int s,
                          NumericVector w0, const double tol,
@@ -354,6 +407,7 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
 
   NumericVector beta(s);
   double J = 0.0;
+  double Jprev = R_NegInf;
   int it = 0;
   std::vector<double> hist;
 
@@ -374,6 +428,7 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
     double denom = 0.0; for (int i = 0; i < n; ++i) denom += ts1[i] * ts_beta[i];
     denom = std::sqrt(std::max(1e-15, denom));
     for (int i = 0; i < s; ++i) beta[i] /= denom;
+    ts_beta = matvec_Ts(Ts, beta);
 
     // Xbeta = sum_i beta_i X_{s - i}
     NumericMatrix Xbeta(n, m);
@@ -397,16 +452,12 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
     for (int j2 = 0; j2 < m; ++j2) b[j2] = term1[j2] + term2[j2];
 
     // solve and normalize w
-    NumericVector w_new = solve_linear(A, b);
+    NumericVector w_new = solve_linear(A, b, 1e-8);
     double nrmw = std::sqrt(std::inner_product(w_new.begin(), w_new.end(), w_new.begin(), 0.0));
     if (nrmw > 1e-15) for (int j2 = 0; j2 < m; ++j2) w_new[j2] /= nrmw;
 
-    // objective J = ts1_new^T (Ts_new beta)
-    NumericVector ts1_new = matvec(Xsp1, w_new);
-    NumericMatrix Ts_new(n, s);
-    build_Ts(blocks, s, w_new, Ts_new);
-    NumericVector tsb_new = matvec_Ts(Ts_new, beta);
-    J = 0.0; for (int i2 = 0; i2 < n; ++i2) J += ts1_new[i2] * tsb_new[i2];
+    // objective J follows the R implementation: current t against its fitted lag prediction.
+    J = 0.0; for (int i2 = 0; i2 < n; ++i2) J += ts1[i2] * ts_beta[i2];
     hist.push_back(J);
 
     // convergence on ||w_new - w||_inf
@@ -419,7 +470,8 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
       Rcpp::Rcout << "[dicca] it=" << it << "  J=" << J << "  |dw|_inf=" << diff << std::endl;
     }
     w = w_new;
-    if (diff < tol) break;
+    if (std::abs(J - Jprev) < tol) break;
+    Jprev = J;
   }
 
   // R2 using final w, beta
@@ -427,6 +479,7 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
   NumericMatrix Tsf(n, s);
   build_Ts(blocks, s, w, Tsf);
   NumericVector that = matvec_Ts(Tsf, beta);
+  J = 0.0; for (int i = 0; i < n; ++i) J += ts1f[i] * that[i];
   // center
   double mean_a = 0.0, mean_c = 0.0;
   for (int i = 0; i < n; ++i) { mean_a += ts1f[i]; mean_c += that[i]; }
@@ -443,12 +496,13 @@ List dicca_component_cpp(const NumericMatrix& X, const int s,
 
   NumericVector obj_hist_R(hist.size());
   for (size_t i = 0; i < hist.size(); ++i) obj_hist_R[i] = hist[i];
+  const int iters_out = std::min(it, max_iter);
 
   return List::create(
     _["w"] = w,
     _["beta"] = beta,
     _["obj"] = J,
-    _["iters"] = it,
+    _["iters"] = iters_out,
     _["R2"] = R2,
     _["obj_hist"] = obj_hist_R
   );

@@ -122,7 +122,6 @@ dipca <- function(X, s, l,
 
   Xcur <- Xs
   for (comp in seq_len(L)) {
-    Xi <- .form_blocks(Xcur, S)
     best <- list(obj = -Inf)
 
     for (init in seq_len(n_init)) {
@@ -138,58 +137,25 @@ dipca <- function(X, s, l,
       }
       w <- w / sqrt(sum(w^2))
 
-      Jprev <- -Inf
-      beta <- rep(1 / sqrt(S), S)
-      iter_count <- 0L
+      res <- dipca_component_cpp(
+        Xcur, S, w,
+        algorithm = algorithm,
+        tol = tol,
+        max_iter = as.integer(max_iter),
+        inner_power = as.integer(inner_power),
+        inner_tol = inner_tol,
+        verbose = as.integer(verbose)
+      )
+      t_final <- as.numeric(Xcur %*% res$w)
 
-      for (iter in seq_len(max_iter)) {
-        iter_count <- iter
-        t_vec <- as.numeric(Xcur %*% w)
-        lag <- .make_t_lags(t_vec, S)
-        ts1 <- lag$ts1
-        Ts <- lag$Ts
-
-        beta <- .solve_normal(crossprod(Ts), crossprod(Ts, ts1))
-        denom <- as.numeric(t(ts1) %*% (Ts %*% beta))
-        beta <- beta / sqrt(max(1e-12, denom))
-
-        acc <- numeric(m)
-        for (i in 1:S) {
-          acc <- acc +
-            beta[i] * (as.numeric(crossprod(Xi[[S + 1L]], Ts[, i])) +
-                         as.numeric(crossprod(Xi[[i]], ts1)))
-        }
-        w_new <- as.numeric(acc)
-        nrm <- sqrt(sum(w_new^2))
-        if (!is.finite(nrm) || nrm == 0) break
-        w_new <- w_new / nrm
-
-        J <- sum(ts1 * as.numeric(Ts %*% beta))
-        if (abs(J - Jprev) < tol) {
-          w <- w_new
-          break
-        }
-        w <- w_new
-        Jprev <- J
-      }
-
-      t_final <- as.numeric(Xcur %*% w)
-      lag_final <- .make_t_lags(t_final, S)
-      ts1f <- lag_final$ts1
-      Tsf <- lag_final$Ts
-      that <- as.numeric(Tsf %*% beta)
-      obj_val <- sum(ts1f * that)
-      r <- suppressWarnings(stats::cor(ts1f, that))
-      R2_val <- if (is.finite(r)) r^2 else 0
-
-      if (obj_val > best$obj) {
+      if (res$obj > best$obj) {
         best <- list(
-          obj = obj_val,
-          w = w,
-          beta = beta,
+          obj = res$obj,
+          w = res$w,
+          beta = res$beta,
           t = t_final,
-          R2 = R2_val,
-          iters = iter_count
+          R2 = res$R2,
+          iters = res$iters
         )
       }
     }

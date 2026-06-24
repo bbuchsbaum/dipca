@@ -7,3 +7,4 @@
 ^check-results$
 ^dipca\.Rcheck$
 ^\.omc$
+^\.covr_result\.rds$
