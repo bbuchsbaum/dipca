@@ -40,59 +40,10 @@
 #' @name dipca
 #' @aliases DiPCA
 #' @examples
-#' \dontrun{
-#' library(multivarious)
-#' library(dipca)
-#'
 #' set.seed(1)
-#' T <- 600; m <- 5; l <- 3; s <- 1
-#'
-#' # Simulate VAR(1) latent process
-#' A <- matrix(c(0.5205, 0.1022, 0.0599,
-#'               0.5367, -0.0139, 0.4159,
-#'               0.0412, 0.6054, 0.3874), 3, 3, byrow = TRUE)
-#' P <- matrix(c(0.4316, 0.1723, -0.0574,
-#'               0.1202, -0.1463, 0.5348,
-#'               0.2483, 0.1982, 0.4797,
-#'               0.1151, 0.1557, 0.3739,
-#'               0.2258, 0.5461, -0.0424), 5, 3, byrow = TRUE)
-#' t <- matrix(0, T, l)
-#' v <- matrix(rnorm(T * l), T, l)
-#' for (k in 2:T) {
-#'   t[k, ] <- c(0.5205, 0.5367, 0.0412) + A %*% t[k - 1, ] + v[k, ]
-#' }
-#' X <- t %*% t(P) + matrix(rnorm(T * m, sd = 0.1), T, m)
-#'
-#' # Fit DiPCA with centering (default)
-#' fit <- dipca(X, s = 1, l = 3, n_init = 3, max_iter = 800,
-#'              tol = 1e-7, algorithm = "I")
-#'
-#' # Fit with centering and scaling
-#' fit_scaled <- dipca(X, s = 1, l = 3,
-#'                     preproc = center() %>% colscale(type = "z"),
-#'                     n_init = 3, max_iter = 800, tol = 1e-7)
-#'
-#' # Access components using bi_projector methods
-#' scores <- scores(fit)           # Extract latent scores
-#' weights <- components(fit)      # Extract weight matrix
-#' loadings <- fit$loadings        # Extract loadings
-#' theta <- fit$theta              # VAR coefficients
-#'
-#' # Project new data
-#' X_new <- matrix(rnorm(50 * m), 50, m)
-#' scores_new <- project(fit, X_new)
-#'
-#' # Reconstruct data
-#' X_recon <- reconstruct_new(fit, X_new)
-#'
-#' # Temporal prediction
-#' predictions <- predict(fit, X_new)
-#' str(predictions)  # scores and scores_hat
-#'
-#' # Compute residuals
-#' resid <- residuals(fit, X_new)
-#' str(resid)  # v (score residuals), e_hat (data residuals), scores
-#' }
+#' X <- matrix(rnorm(200), 100, 4)
+#' fit <- dipca(X, s = 1, l = 2, n_init = 1, max_iter = 100)
+#' head(multivarious::scores(fit))
 #' @export
 dipca <- function(X, s, l,
                   preproc = multivarious::center(),

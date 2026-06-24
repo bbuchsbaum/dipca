@@ -32,21 +32,15 @@ The package currently provides:
 
 ## Installation
 
-`dipca` is not on CRAN. Install it from GitHub together with its non-CRAN
-dependency `multivarious`:
+```r
+install.packages("dipca")
+```
+
+Development version from GitHub:
 
 ```r
 install.packages("remotes")
-
-remotes::install_github("bbuchsbaum/multivarious")
 remotes::install_github("bbuchsbaum/dipca")
-```
-
-For local development:
-
-```r
-remotes::install_local("path/to/multivarious")
-remotes::install_local("path/to/dipca")
 ```
 
 ## Quick Start
@@ -119,10 +113,9 @@ Y_hat <- predict(fit, X)
 
 ## Documentation
 
-- Package site: <https://bbuchsbaum.github.io/dipca/>
-- Getting started article: <https://bbuchsbaum.github.io/dipca/articles/dipca.html>
-- Dynamic-components walkthrough: <https://bbuchsbaum.github.io/dipca/articles/extracting-dynamic-components.html>
-- Function reference: <https://bbuchsbaum.github.io/dipca/reference/index.html>
+- Source repository: <https://github.com/bbuchsbaum/dipca>
+- Vignettes: `vignette("dipca")` and `vignette("extracting-dynamic-components")`
+- Function reference: `?dipca`, `?dicca`, `?dipls`
 
 ## References
 

@@ -46,31 +46,10 @@
 #' @name dicca
 #' @aliases DiCCA
 #' @examples
-#' \dontrun{
-#' library(multivarious)
-#' library(dipca)
-#'
-#' # Simulate time series data
-#' set.seed(123)
-#' T <- 400; m <- 10; l <- 3; s <- 1
-#' X <- matrix(rnorm(T * m), T, m)
-#'
-#' # Fit DiCCA with default centering
-#' fit <- dicca(X, s = 1, l = 3, n_init = 2, max_iter = 500)
-#'
-#' # Fit with centering and scaling
-#' fit_scaled <- dicca(X, s = 1, l = 3,
-#'                     preproc = center() %>% colscale(type = "z"),
-#'                     n_init = 2)
-#'
-#' # Access components using bi_projector methods
-#' scores <- scores(fit)
-#' weights <- components(fit)
-#' r2_values <- fit$R2
-#'
-#' # Temporal prediction
-#' predictions <- predict(fit, X)
-#' }
+#' set.seed(1)
+#' X <- matrix(rnorm(200), 100, 4)
+#' fit <- dicca(X, s = 1, l = 2, inner = "classic", n_init = 1, max_iter = 100)
+#' fit$R2
 #' @export
 dicca <- function(X, s, l,
                   preproc = multivarious::center(),

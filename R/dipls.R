@@ -41,22 +41,11 @@
 #'
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(1)
-#' Tn <- 400; m <- 6; p <- 2; s <- 2
-#' X <- matrix(rnorm(Tn * m), Tn, m)
-#' w0 <- rnorm(m); w0 <- w0 / sqrt(sum(w0^2))
-#' t0 <- as.numeric(X %*% w0)
-#' beta0 <- c(0.8, -0.3, 0.2)
-#' u <- numeric(Tn)
-#' u[(s + 1):Tn] <- as.numeric(dipls_build_Ts_cpp(t0, s) %*% beta0)
-#' Q0 <- matrix(rnorm(p), p); Q0 <- Q0 / sqrt(sum(Q0^2))
-#' Y <- u %o% as.numeric(Q0) + matrix(rnorm(Tn * p, sd = 0.2), Tn, p)
-#'
-#' fit <- dipls(X, Y, n_comp = 1, s = s, mode = "fir",
-#'              preproc_x = multivarious::center(), verbose = 1)
-#' Yhat <- predict(fit, X)
-#' }
+#' X <- matrix(rnorm(200), 100, 4)
+#' Y <- matrix(rnorm(200), 100, 2)
+#' fit <- dipls(X, Y, n_comp = 1, s = 1, mode = "fir", verbose = 0)
+#' dim(predict(fit, X))
 dipls <- function(X, Y, n_comp, s,
                   preproc_x = multivarious::center(),
                   preproc_y = NULL,

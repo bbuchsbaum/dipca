@@ -90,31 +90,10 @@ then normalize w. After each component, deflate X by X <- X - t p^T with p = X^T
 on the extracted score matrix for prediction utilities.
 }
 \examples{
-\dontrun{
-library(multivarious)
-library(dipca)
-
-# Simulate time series data
-set.seed(123)
-T <- 400; m <- 10; l <- 3; s <- 1
-X <- matrix(rnorm(T * m), T, m)
-
-# Fit DiCCA with default centering
-fit <- dicca(X, s = 1, l = 3, n_init = 2, max_iter = 500)
-
-# Fit with centering and scaling
-fit_scaled <- dicca(X, s = 1, l = 3,
-                    preproc = center() \%>\% colscale(type = "z"),
-                    n_init = 2)
-
-# Access components using bi_projector methods
-scores <- scores(fit)
-weights <- components(fit)
-r2_values <- fit$R2
-
-# Temporal prediction
-predictions <- predict(fit, X)
-}
+set.seed(1)
+X <- matrix(rnorm(200), 100, 4)
+fit <- dicca(X, s = 1, l = 2, inner = "classic", n_init = 1, max_iter = 100)
+fit$R2
 }
 \references{
 Dong & Qin (2018) Dynamic-Inner Canonical Correlation and Causality Analysis for High Dimensional Time Series Data, IFAC ADCHEM.

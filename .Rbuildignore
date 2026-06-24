@@ -8,3 +8,5 @@
 ^dipca\.Rcheck$
 ^\.omc$
 ^\.covr_result\.rds$
+^LICENSE\.md$
+^cran-comments\.md$
