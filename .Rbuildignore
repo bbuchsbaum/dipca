@@ -10,3 +10,4 @@
 ^\.covr_result\.rds$
 ^LICENSE\.md$
 ^cran-comments\.md$
+^.*\.tar\.gz$
