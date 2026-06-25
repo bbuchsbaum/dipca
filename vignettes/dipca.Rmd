@@ -33,7 +33,7 @@ such temporally structured latent components:
 | DiPLS  | `dipls()` | Maximize dynamic cross-covariance between an input block X and output block Y |
 
 All three return objects that integrate with the
-[multivarious](https://bbuchsbaum.github.io/multivarious/) framework, so you
+[multivarious](https://github.com/bbuchsbaum/multivarious) framework, so you
 get `scores()`, `project()`, `reconstruct()`, `predict()`, and `residuals()`
 out of the box.
 
@@ -145,7 +145,18 @@ fit AR/ARMA models per component instead of a joint VAR:
 
 ```{r dicca-ar}
 fit_ar <- dicca(X, s = 1, l = 2, inner = "ar", n_init = 2)
+
+# Compact models fit per-component AR/ARMA inner models; compute R² from predict()
+pred_ar <- predict(fit_ar, X)
+r2_ar <- sapply(1:2, function(j) {
+  ok <- !is.na(pred_ar$scores_hat[, j])
+  cor(pred_ar$scores[ok, j], pred_ar$scores_hat[ok, j])^2
+})
+cat("Compact DiCCA one-step R-squared:", round(r2_ar, 3), "\n")
 ```
+
+An experimental `inner = "arima"` path exists for unit-root or complex dynamics;
+enable it with `options(dipca.experimental_arima = TRUE)` before calling `dicca()`.
 
 The same `predict()`, `residuals()`, and `reconstruct()` methods work for
 both classic and compact variants.

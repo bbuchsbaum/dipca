@@ -2,3 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+.covr_result.rds
+.DS_Store
+*.tar.gz
+src/*.o
+src/*.so
+src/*.dll
+/doc/
+/Meta/

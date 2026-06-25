@@ -2,37 +2,38 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 arma_inverse_filter_cpp <- function(U, ar, ma, d) {
-    .Call('_dipca_arma_inverse_filter_cpp', PACKAGE = 'dipca', U, ar, ma, d)
+    .Call(`_dipca_arma_inverse_filter_cpp`, U, ar, ma, d)
 }
 
 smallest_eigenvector_crossprod_cpp <- function(U) {
-    .Call('_dipca_smallest_eigenvector_crossprod_cpp', PACKAGE = 'dipca', U)
+    .Call(`_dipca_smallest_eigenvector_crossprod_cpp`, U)
 }
 
 form_blocks_cpp <- function(X, s) {
-    .Call('_dipca_form_blocks_cpp', PACKAGE = 'dipca', X, s)
+    .Call(`_dipca_form_blocks_cpp`, X, s)
 }
 
 dipca_component_cpp <- function(X, s, w0, algorithm, tol, max_iter, inner_power, inner_tol, verbose) {
-    .Call('_dipca_dipca_component_cpp', PACKAGE = 'dipca', X, s, w0, algorithm, tol, max_iter, inner_power, inner_tol, verbose)
+    .Call(`_dipca_dipca_component_cpp`, X, s, w0, algorithm, tol, max_iter, inner_power, inner_tol, verbose)
 }
 
 dicca_component_cpp <- function(X, s, w0, tol, max_iter, verbose) {
-    .Call('_dipca_dicca_component_cpp', PACKAGE = 'dipca', X, s, w0, tol, max_iter, verbose)
+    .Call(`_dipca_dicca_component_cpp`, X, s, w0, tol, max_iter, verbose)
 }
 
 dipls_build_Xlags_cpp <- function(X, s) {
-    .Call('_dipca_dipls_build_Xlags_cpp', PACKAGE = 'dipca', X, s)
+    .Call(`_dipca_dipls_build_Xlags_cpp`, X, s)
 }
 
 dipls_build_Ts_cpp <- function(t_all, s) {
-    .Call('_dipca_dipls_build_Ts_cpp', PACKAGE = 'dipca', t_all, s)
+    .Call(`_dipca_dipls_build_Ts_cpp`, t_all, s)
 }
 
 dipls_weight_w_cpp <- function(Xlags, beta, u_s) {
-    .Call('_dipca_dipls_weight_w_cpp', PACKAGE = 'dipca', Xlags, beta, u_s)
+    .Call(`_dipca_dipls_weight_w_cpp`, Xlags, beta, u_s)
 }
 
 dipls_ridge_ls_cpp <- function(X, y, lambda) {
-    .Call('_dipca_dipls_ridge_ls_cpp', PACKAGE = 'dipca', X, y, lambda)
+    .Call(`_dipca_dipls_ridge_ls_cpp`, X, y, lambda)
 }
+

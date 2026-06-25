@@ -40,59 +40,10 @@
 #' @name dipca
 #' @aliases DiPCA
 #' @examples
-#' \dontrun{
-#' library(multivarious)
-#' library(dipca)
-#'
 #' set.seed(1)
-#' T <- 600; m <- 5; l <- 3; s <- 1
-#'
-#' # Simulate VAR(1) latent process
-#' A <- matrix(c(0.5205, 0.1022, 0.0599,
-#'               0.5367, -0.0139, 0.4159,
-#'               0.0412, 0.6054, 0.3874), 3, 3, byrow = TRUE)
-#' P <- matrix(c(0.4316, 0.1723, -0.0574,
-#'               0.1202, -0.1463, 0.5348,
-#'               0.2483, 0.1982, 0.4797,
-#'               0.1151, 0.1557, 0.3739,
-#'               0.2258, 0.5461, -0.0424), 5, 3, byrow = TRUE)
-#' t <- matrix(0, T, l)
-#' v <- matrix(rnorm(T * l), T, l)
-#' for (k in 2:T) {
-#'   t[k, ] <- c(0.5205, 0.5367, 0.0412) + A %*% t[k - 1, ] + v[k, ]
-#' }
-#' X <- t %*% t(P) + matrix(rnorm(T * m, sd = 0.1), T, m)
-#'
-#' # Fit DiPCA with centering (default)
-#' fit <- dipca(X, s = 1, l = 3, n_init = 3, max_iter = 800,
-#'              tol = 1e-7, algorithm = "I")
-#'
-#' # Fit with centering and scaling
-#' fit_scaled <- dipca(X, s = 1, l = 3,
-#'                     preproc = center() %>% colscale(type = "z"),
-#'                     n_init = 3, max_iter = 800, tol = 1e-7)
-#'
-#' # Access components using bi_projector methods
-#' scores <- scores(fit)           # Extract latent scores
-#' weights <- components(fit)      # Extract weight matrix
-#' loadings <- fit$loadings        # Extract loadings
-#' theta <- fit$theta              # VAR coefficients
-#'
-#' # Project new data
-#' X_new <- matrix(rnorm(50 * m), 50, m)
-#' scores_new <- project(fit, X_new)
-#'
-#' # Reconstruct data
-#' X_recon <- reconstruct_new(fit, X_new)
-#'
-#' # Temporal prediction
-#' predictions <- predict(fit, X_new)
-#' str(predictions)  # scores and scores_hat
-#'
-#' # Compute residuals
-#' resid <- residuals(fit, X_new)
-#' str(resid)  # v (score residuals), e_hat (data residuals), scores
-#' }
+#' X <- matrix(rnorm(200), 100, 4)
+#' fit <- dipca(X, s = 1, l = 2, n_init = 1, max_iter = 100)
+#' head(multivarious::scores(fit))
 #' @export
 dipca <- function(X, s, l,
                   preproc = multivarious::center(),
@@ -122,7 +73,6 @@ dipca <- function(X, s, l,
 
   Xcur <- Xs
   for (comp in seq_len(L)) {
-    Xi <- .form_blocks(Xcur, S)
     best <- list(obj = -Inf)
 
     for (init in seq_len(n_init)) {
@@ -138,58 +88,25 @@ dipca <- function(X, s, l,
       }
       w <- w / sqrt(sum(w^2))
 
-      Jprev <- -Inf
-      beta <- rep(1 / sqrt(S), S)
-      iter_count <- 0L
+      res <- dipca_component_cpp(
+        Xcur, S, w,
+        algorithm = algorithm,
+        tol = tol,
+        max_iter = as.integer(max_iter),
+        inner_power = as.integer(inner_power),
+        inner_tol = inner_tol,
+        verbose = as.integer(verbose)
+      )
+      t_final <- as.numeric(Xcur %*% res$w)
 
-      for (iter in seq_len(max_iter)) {
-        iter_count <- iter
-        t_vec <- as.numeric(Xcur %*% w)
-        lag <- .make_t_lags(t_vec, S)
-        ts1 <- lag$ts1
-        Ts <- lag$Ts
-
-        beta <- .solve_normal(crossprod(Ts), crossprod(Ts, ts1))
-        denom <- as.numeric(t(ts1) %*% (Ts %*% beta))
-        beta <- beta / sqrt(max(1e-12, denom))
-
-        acc <- numeric(m)
-        for (i in 1:S) {
-          acc <- acc +
-            beta[i] * (as.numeric(crossprod(Xi[[S + 1L]], Ts[, i])) +
-                         as.numeric(crossprod(Xi[[i]], ts1)))
-        }
-        w_new <- as.numeric(acc)
-        nrm <- sqrt(sum(w_new^2))
-        if (!is.finite(nrm) || nrm == 0) break
-        w_new <- w_new / nrm
-
-        J <- sum(ts1 * as.numeric(Ts %*% beta))
-        if (abs(J - Jprev) < tol) {
-          w <- w_new
-          break
-        }
-        w <- w_new
-        Jprev <- J
-      }
-
-      t_final <- as.numeric(Xcur %*% w)
-      lag_final <- .make_t_lags(t_final, S)
-      ts1f <- lag_final$ts1
-      Tsf <- lag_final$Ts
-      that <- as.numeric(Tsf %*% beta)
-      obj_val <- sum(ts1f * that)
-      r <- suppressWarnings(stats::cor(ts1f, that))
-      R2_val <- if (is.finite(r)) r^2 else 0
-
-      if (obj_val > best$obj) {
+      if (res$obj > best$obj) {
         best <- list(
-          obj = obj_val,
-          w = w,
-          beta = beta,
+          obj = res$obj,
+          w = res$w,
+          beta = res$beta,
           t = t_final,
-          R2 = R2_val,
-          iters = iter_count
+          R2 = res$R2,
+          iters = res$iters
         )
       }
     }

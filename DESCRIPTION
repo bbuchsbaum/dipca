@@ -2,26 +2,29 @@ Package: dipca
 Type: Package
 Title: Dynamic Inner Principal Component Analysis
 Version: 0.1.0
-Authors@R: person(given = c("Bradley", "R."),
+Authors@R: person(
+    given = c("Bradley", "R."),
     family = "Buchsbaum",
-    role = c("aut", "cre"),
+    role = c("aut", "cre", "cph"),
     email = "brad.buchsbaum@gmail.com")
-Description: Implements Dynamic Inner Principal Component Analysis (DiPCA),
-    Dynamic Inner Canonical Correlation Analysis (DiCCA), and Dynamic Inner
-    Partial Least Squares (DiPLS) for multivariate time series analysis.
-    These methods extract latent components that follow autoregressive models,
-    enabling temporal prediction and reconstruction. Based on the methods of
-    Dong and Qin (2018) <doi:10.1016/j.jprocont.2017.05.002> for DiPCA,
-    Dong and Qin (2018) <doi:10.1016/j.ifacol.2018.09.379> for DiCCA, and
-    Dong and Qin (2018) <doi:10.1016/j.jprocont.2018.04.006> for DiPLS.
-    Integrates with the 'multivarious' package framework for consistent
-    preprocessing and projection interfaces.
-License: GPL-3
+Description: Methods for dynamic inner principal component analysis (DiPCA),
+    dynamic inner canonical correlation analysis (DiCCA), and dynamic inner
+    partial least squares (DiPLS) for multivariate time series. These methods
+    extract latent components that follow autoregressive models, enabling
+    temporal prediction and reconstruction. Based on Dong and Qin (2018)
+    <doi:10.1016/j.jprocont.2017.05.002>, Dong and Qin (2018)
+    <doi:10.1016/j.ifacol.2018.09.379>, and Dong and Qin (2018)
+    <doi:10.1016/j.jprocont.2018.04.006>. Integrates with the 'multivarious'
+    package for consistent preprocessing and projection interfaces.
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
+Language: en-US
+URL: https://github.com/bbuchsbaum/dipca
+BugReports: https://github.com/bbuchsbaum/dipca/issues
 Depends: R (>= 3.5.0)
 Imports:
     Rcpp (>= 1.0.0),
-    multivarious,
+    multivarious (>= 0.3.0),
     stats,
     forecast
 LinkingTo: Rcpp, RcppArmadillo
